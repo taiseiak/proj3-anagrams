@@ -73,9 +73,11 @@ def compute():
     # Text is in words list
     matched = WORDS.has(text)
 
-    if matched and in_jumble and not (text in matches):
+    text_with_space = text + ' '
+
+    if matched and in_jumble and not (text_with_space in matches):
         # Cool, they found a new word
-        matches.append(text + ' ')
+        matches.append(text_with_space)
         flask.session["matches"] = matches
     elif not matched:
         app.logger.debug("Word is not in the list")
@@ -85,7 +87,8 @@ def compute():
         app.logger.debug("This case shouldn't happen!")
         assert False  # Raises AssertionError
 
-    result = {"matches": "".join(matches)}
+    result = {"matches": "".join(matches),
+              "found": len(matches) >= flask.session["target_count"]}
     return flask.jsonify(result=result)
 
 
@@ -131,6 +134,6 @@ if __name__ == "__main__":
     if CONFIG.DEBUG:
         app.debug = True
         app.logger.setLevel(logging.DEBUG)
-        app.logger.info(
-            "Opening for global access on port {}".format(CONFIG.PORT))
-        app.run(port=CONFIG.PORT, host="0.0.0.0")
+    app.logger.info(
+        "Opening for global access on port {}".format(CONFIG.PORT))
+    app.run(port=CONFIG.PORT, host="0.0.0.0")

@@ -87,10 +87,15 @@
   </form>
 </div></div>
 
-<br />
 
-<h2>You found </h2>
-<p id="matches"></p>
+<br />
+<div class="row">
+  <div class="col-xs-6 text-center">
+    <h2>You found </h2>
+    <p id="matches"></p>
+  </div>
+</div>
+  <div id="found"></div>
 
 <script>
 // Suppress normal form submission
@@ -110,8 +115,13 @@ $("#attempt").keyup(function(event) {
    $.getJSON( "/_compute", { text: txt },
               function(data) {
                 matches = data.result.matches;
+                found = data.result.found;
                 console.log("matches: " + matches)
-                if (matches) {
+                console.log("found: " + found)
+                if (found) {
+                   $("#matches").html(matches);
+                   $("#found").html('<div class="alert alert-success col-xs-6 text-center"><strong>Success!</strong> You found all the words!</div>');
+                } else if (matches) {
                    $("#matches").html(matches);
                 }
               }
