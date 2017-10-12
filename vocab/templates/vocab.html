@@ -42,7 +42,6 @@
 
 <body>
 <div class="container">
-
   <div class="row">
     <div class="col-xs-6 text-center">
       <h1>Words</h1>
@@ -72,7 +71,8 @@
   <div class="col-xs-6 text-center lead">
     <strong>{{ session.jumble }}</strong>
   </div>
-  </div><div class="row">
+  </div>
+  <div class="row">
   <div class="col-xs-6 text-center">
     to spell {{session.target_count}} words from the list.
   </div> <!-- col -->
@@ -84,32 +84,40 @@
     <label for="attempt">Word:</label>
     <input id="attempt" name="attempt" type="text" width="15"
       autocomplete="off"  autofocus />
-    <input type="submit" name="try" />
   </form>
 </div></div>
 
 <br />
 
-{% if session.matches|length is not equalto 0  %}
 <h2>You found </h2>
-<p id="results">
-  {% for match in session.matches %}
-  {{ match }} 
-  {% endfor %}
-</p>
-{% endif %}
+<p id="matches"></p>
+
+<script>
+// Suppress normal form submission
+$("#entry").submit(function(event) {
+    event.preventDefault();
+});
+
+$("#attempt").keyup(function(event) {
+   var txt = $("#attempt").val();  // Current content of the input field
+   var keycode = event.which;      // They key that just went up
+   var letter = String.fromCharCode(keycode);
+
+   // Key press needs to be letter
+   if (! "ABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(letter)) { return }
 
 
-{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <!-- Mismatch, already found, etc. "flashed" from Python -->
-    {% for message in messages %}
-      <p class="message">{{ message }}</p>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
-
-
+   $.getJSON( "/_compute", { text: txt },
+              function(data) {
+                matches = data.result.matches;
+                console.log("matches: " + matches)
+                if (matches) {
+                   $("#matches").html(matches);
+                }
+              }
+   );
+});
+</script>
 
  </div> <!-- container -->
 </body> </html>

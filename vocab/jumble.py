@@ -30,7 +30,6 @@ def jumbled(word_list, n):
     for word in selected:
         bag.merge(LetterBag(word))
     letters = list(bag.as_string())
-    print("Letters: {}".format(letters))
     random.shuffle(letters)
     result = "".join(letters)
     return result

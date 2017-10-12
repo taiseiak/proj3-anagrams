@@ -45,77 +45,8 @@ def index():
     flask.session["jumble"] = jumbled(
         flask.g.vocab, flask.session["target_count"])
     flask.session["matches"] = []
-    app.logger.debug("Session variables have been set")
-    assert flask.session["matches"] == []
-    assert flask.session["target_count"] > 0
-    app.logger.debug("At least one seems to be set correctly")
     return flask.render_template('vocab.html')
 
-
-@app.route("/keep_going")
-def keep_going():
-    """
-    After initial use of index, we keep the same scrambled
-    word and try to get more matches
-    """
-    flask.g.vocab = WORDS.as_list()
-    return flask.render_template('vocab.html')
-
-
-@app.route("/success")
-def success():
-    return flask.render_template('success.html')
-
-#######################
-# Form handler.
-# CIS 322 note:
-#   You'll need to change this to a
-#   a JSON request handler
-#######################
-
-
-@app.route("/_check", methods=["POST"])
-def check():
-    """
-    User has submitted the form with a word ('attempt')
-    that should be formed from the jumble and on the
-    vocabulary list.  We respond depending on whether
-    the word is on the vocab list (therefore correctly spelled),
-    made only from the jumble letters, and not a word they
-    already found.
-    """
-    app.logger.debug("Entering check")
-
-    # The data we need, from form and from cookie
-    text = flask.request.form["attempt"]
-    jumble = flask.session["jumble"]
-    matches = flask.session.get("matches", [])  # Default to empty list
-
-    # Is it good?
-    in_jumble = LetterBag(jumble).contains(text)
-    matched = WORDS.has(text)
-
-    # Respond appropriately
-    if matched and in_jumble and not (text in matches):
-        # Cool, they found a new word
-        matches.append(text)
-        flask.session["matches"] = matches
-    elif text in matches:
-        flask.flash("You already found {}".format(text))
-    elif not matched:
-        flask.flash("{} isn't in the list of words".format(text))
-    elif not in_jumble:
-        flask.flash(
-            '"{}" can\'t be made from the letters {}'.format(text, jumble))
-    else:
-        app.logger.debug("This case shouldn't happen!")
-        assert False  # Raises AssertionError
-
-    # Choose page:  Solved enough, or keep going?
-    if len(matches) >= flask.session["target_count"]:
-       return flask.redirect(flask.url_for("success"))
-    else:
-       return flask.redirect(flask.url_for("keep_going"))
 
 ###############
 # AJAX request handlers
@@ -123,14 +54,39 @@ def check():
 ###############
 
 
-@app.route("/_example")
-def example():
+@app.route("/_compute")
+def compute():
     """
-    Example ajax request handler
+    Computes the input string. To see if the string
+    is made from the scramble and if words can be made
+    from the bank.
     """
     app.logger.debug("Got a JSON request")
-    rslt = {"key": "value"}
-    return flask.jsonify(result=rslt)
+
+    text = flask.request.args.get("text", type=str)
+    jumble = flask.session["jumble"]
+    matches = flask.session.get("matches", [])
+    app.logger.debug(matches)
+
+    # Text made from jumbled letters
+    in_jumble = LetterBag(jumble).contains(text)
+    # Text is in words list
+    matched = WORDS.has(text)
+
+    if matched and in_jumble and not (text in matches):
+        # Cool, they found a new word
+        matches.append(text + ' ')
+        flask.session["matches"] = matches
+    elif not matched:
+        app.logger.debug("Word is not in the list")
+    elif not in_jumble:
+        app.logger.debug("Some letters not in jumble")
+    else:
+        app.logger.debug("This case shouldn't happen!")
+        assert False  # Raises AssertionError
+
+    result = {"matches": "".join(matches)}
+    return flask.jsonify(result=result)
 
 
 #################
