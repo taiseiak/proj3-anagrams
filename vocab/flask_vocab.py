@@ -73,21 +73,12 @@ def compute():
     # Text is in words list
     matched = WORDS.has(text)
 
-    text_with_space = text + ' '
-
-    if matched and in_jumble and not (text_with_space in matches):
+    if matched and in_jumble and not (text in matches):
         # Cool, they found a new word
-        matches.append(text_with_space)
+        matches.append(text)
         flask.session["matches"] = matches
-    elif not matched:
-        app.logger.debug("Word is not in the list")
-    elif not in_jumble:
-        app.logger.debug("Some letters not in jumble")
-    else:
-        app.logger.debug("This case shouldn't happen!")
-        assert False  # Raises AssertionError
 
-    result = {"matches": "".join(matches),
+    result = {"matches": " ".join(matches),
               "found": len(matches) >= flask.session["target_count"]}
     return flask.jsonify(result=result)
 

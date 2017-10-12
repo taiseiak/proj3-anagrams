@@ -1,6 +1,7 @@
 # Project specific / mac specific
 .DS_Store
 credentials.ini
+SERVICE_PID
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -18,7 +19,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+lib/git ta
 lib64/
 parts/
 sdist/
